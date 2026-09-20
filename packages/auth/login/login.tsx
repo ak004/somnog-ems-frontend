@@ -16,13 +16,20 @@ import {
   setAlpha,
 } from '@ant-design/pro-components';
 import { Image, Space, Tabs, message, theme } from 'antd';
-import type { CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import apiConfig from '@/shared/apiconfig';
+import { apiMessage } from '@/shared/apiError';
 import { useAuth } from '@/packages/auth/context/context';
 
 type LoginType = 'signin' | 'signup';
+
+type LoginFormValues = {
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+};
 
 const Demo = () => {
   const { token } = theme.useToken();
@@ -30,13 +37,13 @@ const Demo = () => {
   const router = useRouter();
   const { setIsLoggedIn, setUser } = useAuth();
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: LoginFormValues) => {
     try {
       const { data } = await apiConfig.post(
         loginType === 'signin' ? '/api/auth/login' : '/api/auth/register',
         values,
       );
-      
+
       if (loginType === 'signin') {
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
@@ -48,9 +55,8 @@ const Demo = () => {
         message.success('Account created. Check MailHog to verify your email.');
       }
       return true;
-    } catch (error: any) {
-      const apiError = error?.response?.data?.error;
-      message.error(apiError?.message ?? 'Request failed');
+    } catch (error: unknown) {
+      message.error(apiMessage(error, 'Request failed'));
       return false;
     }
   };
@@ -228,8 +234,12 @@ const Demo = () => {
   );
 };
 
-export default () => (
-  <div style={{ padding: 24 }}>
-    <Demo />
-  </div>
-);
+function LoginPage() {
+  return (
+    <div style={{ padding: 24 }}>
+      <Demo />
+    </div>
+  );
+}
+
+export default LoginPage;
