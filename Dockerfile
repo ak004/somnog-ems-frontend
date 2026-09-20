@@ -1,8 +1,14 @@
-# Build: docker build --build-arg NEXT_PUBLIC_API_URL=https://api.example.com -t frontend .
+# Build: docker build -t frontend .
 #
 # NEXT_PUBLIC_* vars are inlined into the JS bundle at build time, not read at
-# container start - so the gateway's public URL has to be known here, as a
+# container start - so anything the browser needs has to be known here, as a
 # build arg, not as a runtime env var on the running container.
+#
+# The default is empty on purpose: the deployed stack puts nginx in front of
+# both this app and the gateway, so /api is same-origin and the bundle needs no
+# url at all. Only set NEXT_PUBLIC_API_URL when the gateway is on a DIFFERENT
+# origin than the frontend (and then the gateway's CORS APP_WEB_URL has to
+# allow that origin).
 
 FROM node:24-alpine AS build
 WORKDIR /app
@@ -12,7 +18,7 @@ RUN npm ci
 
 COPY . .
 
-ARG NEXT_PUBLIC_API_URL=http://localhost:3000
+ARG NEXT_PUBLIC_API_URL=
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 RUN npm run build
 

@@ -30,7 +30,7 @@ jobs:
 
       - run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:3000' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
 
   build:
     needs: test
@@ -46,15 +46,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # NEXT_PUBLIC_* vars are inlined into the JS bundle at build time, so
-      # the gateway's public URL has to be set as a repo Variable
-      # (Settings -> Secrets and variables -> Actions -> Variables) named
-      # NEXT_PUBLIC_API_URL, not left for the container to pick up at deploy.
+      # NEXT_PUBLIC_* vars are inlined into the JS bundle at build time, not
+      # read at deploy. Leave the NEXT_PUBLIC_API_URL repo Variable unset: the
+      # server runs nginx in front of both this app and the gateway, so /api is
+      # same-origin and no url needs baking in. Set it (Settings -> Secrets and
+      # variables -> Actions -> Variables) only if the gateway ever moves to a
+      # different origin than the frontend.
       - uses: docker/build-push-action@v6
         with:
           context: .
           build-args: |
-            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:3000' }}
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/somnog-ems-frontend:latest
