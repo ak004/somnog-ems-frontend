@@ -67,7 +67,7 @@ const Demo = () => {
         <LoginForm
           logo={<Image src="/logo.png" alt="logo" width={100}  />}
 
-          subTitle="Sign in to your account"
+          subTitle="Sign in to your account V1"
           
           onFinish={onFinish}
 
